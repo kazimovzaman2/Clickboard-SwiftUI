@@ -3,10 +3,11 @@ import SwiftUI
 
 struct ClipboardView: View {
     @ObservedObject var clipboardManager = SharedClipboardManager.shared
-    @Environment(\.dismiss) private var dismiss
+    let onClose: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // Header
             HStack {
                 Text("Clipboard History")
                     .font(.title2)
@@ -19,7 +20,7 @@ struct ClipboardView: View {
                     .foregroundColor(.secondary)
                 
                 Button("Close") {
-                    dismiss()
+                    onClose()
                 }
                 .keyboardShortcut(.escape)
             }
@@ -52,13 +53,28 @@ struct ClipboardView: View {
                             index: index,
                             onCopy: {
                                 clipboardManager.copyToClipboard(item)
-                                dismiss()
+                                onClose()
                             }
                         )
                     }
                 }
                 .listStyle(PlainListStyle())
             }
+            
+            // Footer with shortcuts
+            HStack {
+                Text("⌥⌘V to toggle • Click item to copy • ESC to close")
+                    .font(.caption2)
+                    .foregroundColor(.blue)
+                Spacer()
+                Button("Clear All") {
+                    clipboardManager.clearHistory()
+                }
+                .buttonStyle(.borderless)
+                .foregroundColor(.red)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
         }
         .frame(minWidth: 500, minHeight: 600)
         .background(Color(NSColor.windowBackgroundColor))

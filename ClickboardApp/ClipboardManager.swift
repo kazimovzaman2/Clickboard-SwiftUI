@@ -1,6 +1,8 @@
+
 import Foundation
 import AppKit
 
+// Shared clipboard manager instance
 class SharedClipboardManager: ObservableObject {
     static let shared = SharedClipboardManager()
     
@@ -11,6 +13,7 @@ class SharedClipboardManager: ObservableObject {
     private init() {
         self.changeCount = NSPasteboard.general.changeCount
         startPolling()
+        // Check for existing clipboard content on startup
         checkClipboard()
     }
     
@@ -36,6 +39,11 @@ class SharedClipboardManager: ObservableObject {
                         self.history.removeLast()
                     }
                     print("Added clipboard item: \(newString.prefix(50))...")
+                    
+                    // Update menu bar menu
+                    if let appDelegate = NSApp.delegate as? AppDelegate {
+                        appDelegate.setupMenu()
+                    }
                 }
             }
         }
@@ -44,7 +52,14 @@ class SharedClipboardManager: ObservableObject {
     func copyToClipboard(_ text: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
+        // Update our change count to avoid re-adding this item
         changeCount = NSPasteboard.general.changeCount
+    }
+    
+    func clearHistory() {
+        DispatchQueue.main.async {
+            self.history.removeAll()
+        }
     }
     
     deinit {
